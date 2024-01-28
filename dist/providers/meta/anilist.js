@@ -395,7 +395,6 @@ class Anilist extends models_1.AnimeParser {
             try {
               const anifyInfo = await new anify_1.default(this.proxyConfig, this.adapter, this.provider.name.toLowerCase()).fetchAnimeInfo(id);
               animeInfo.mappings = anifyInfo.mappings;
-              animeInfo.artwork = anifyInfo.artwork;
               animeInfo.episodes = (_72 = anifyInfo.episodes) === null || _72 === void 0 ? void 0 : _72.map((item) => {
                 var _b;
                 return ({
