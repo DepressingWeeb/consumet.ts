@@ -274,300 +274,216 @@ class Anilist extends models_1.AnimeParser {
          * @param dub to get dubbed episodes (optional) set to `true` to get dubbed episodes. **ONLY WORKS FOR GOGOANIME**
          * @param fetchFiller to get filler boolean on the episode object (optional) set to `true` to get filler boolean on the episode object.
          */
-        this.fetchAnimeInfo = async (id, dub = false, fetchFiller = false) => {
-            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, _71, _72, _73, _74, _75, _76, _77, _78, _79, _80, _81, _82;
-            const animeInfo = {
-                id: id,
-                title: '',
+      this.fetchAnimeInfo = async (id, dub = false, fetchFiller = false) => {
+        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, _71, _72, _73, _74, _75, _76, _77, _78, _79, _80, _81, _82;
+        const animeInfo = {
+          id: id,
+          title: '',
+        };
+        const options = {
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          query: (0, utils_1.anilistMediaDetailQuery)(id),
+        };
+        let fillerEpisodes;
+        try {
+          let { data, status } = await this.client.post(this.anilistGraphqlUrl, options, {
+            validateStatus: () => true,
+          });
+          if (status == 404)
+            throw new Error('Media not found. Perhaps the id is invalid or the anime is not in anilist');
+          if (status == 429)
+            throw new Error('You have been ratelimited by anilist. Please try again later');
+          // if (status >= 500) throw new Error('Anilist seems to be down. Please try again later');
+          if (status != 200 && status < 429)
+            throw Error('Media not found. If the problem persists, please contact the developer');
+          if (status >= 500)
+            data = await new anify_1.default().fetchAnimeInfoByIdRaw(id);
+          animeInfo.malId = (_d = (_c = (_b = data.data) === null || _b === void 0 ? void 0 : _b.Media) === null || _c === void 0 ? void 0 : _c.idMal) !== null && _d !== void 0 ? _d : (_e = data === null || data === void 0 ? void 0 : data.mappings) === null || _e === void 0 ? void 0 : _e.mal;
+          animeInfo.title = data.data.Media
+            ? {
+              romaji: data.data.Media.title.romaji,
+              english: data.data.Media.title.english,
+              native: data.data.Media.title.native,
+            }
+            : data.data.title;
+          animeInfo.synonyms = (_h = (_g = (_f = data.data) === null || _f === void 0 ? void 0 : _f.Media) === null || _g === void 0 ? void 0 : _g.synonyms) !== null && _h !== void 0 ? _h : data === null || data === void 0 ? void 0 : data.synonyms;
+          animeInfo.isLicensed = (_l = (_k = (_j = data.data) === null || _j === void 0 ? void 0 : _j.Media) === null || _k === void 0 ? void 0 : _k.isLicensed) !== null && _l !== void 0 ? _l : undefined;
+          animeInfo.isAdult = (_p = (_o = (_m = data.data) === null || _m === void 0 ? void 0 : _m.Media) === null || _o === void 0 ? void 0 : _o.isAdult) !== null && _p !== void 0 ? _p : undefined;
+          animeInfo.countryOfOrigin = (_s = (_r = (_q = data.data) === null || _q === void 0 ? void 0 : _q.Media) === null || _r === void 0 ? void 0 : _r.countryOfOrigin) !== null && _s !== void 0 ? _s : undefined;
+          if ((_v = (_u = (_t = data.data) === null || _t === void 0 ? void 0 : _t.Media) === null || _u === void 0 ? void 0 : _u.trailer) === null || _v === void 0 ? void 0 : _v.id) {
+            animeInfo.trailer = {
+              id: data.data.Media.trailer.id,
+              site: (_w = data.data.Media.trailer) === null || _w === void 0 ? void 0 : _w.site,
+              thumbnail: (_x = data.data.Media.trailer) === null || _x === void 0 ? void 0 : _x.thumbnail,
+              thumbnailHash: (0, utils_2.getHashFromImage)((_y = data.data.Media.trailer) === null || _y === void 0 ? void 0 : _y.thumbnail),
             };
-            const options = {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                query: (0, utils_1.anilistMediaDetailQuery)(id),
+          }
+          animeInfo.image =
+            (_11 = (_10 = (_6 = (_2 = (_1 = (_0 = (_z = data.data) === null || _z === void 0 ? void 0 : _z.Media) === null || _0 === void 0 ? void 0 : _0.coverImage) === null || _1 === void 0 ? void 0 : _1.extraLarge) !== null && _2 !== void 0 ? _2 : (_5 = (_4 = (_3 = data.data) === null || _3 === void 0 ? void 0 : _3.Media) === null || _4 === void 0 ? void 0 : _4.coverImage) === null || _5 === void 0 ? void 0 : _5.large) !== null && _6 !== void 0 ? _6 : (_9 = (_8 = (_7 = data.data) === null || _7 === void 0 ? void 0 : _7.Media) === null || _8 === void 0 ? void 0 : _8.coverImage) === null || _9 === void 0 ? void 0 : _9.medium) !== null && _10 !== void 0 ? _10 : data.coverImage) !== null && _11 !== void 0 ? _11 : data.bannerImage;
+          animeInfo.imageHash = (0, utils_2.getHashFromImage)((_24 = (_23 = (_19 = (_15 = (_14 = (_13 = (_12 = data.data) === null || _12 === void 0 ? void 0 : _12.Media) === null || _13 === void 0 ? void 0 : _13.coverImage) === null || _14 === void 0 ? void 0 : _14.extraLarge) !== null && _15 !== void 0 ? _15 : (_18 = (_17 = (_16 = data.data) === null || _16 === void 0 ? void 0 : _16.Media) === null || _17 === void 0 ? void 0 : _17.coverImage) === null || _18 === void 0 ? void 0 : _18.large) !== null && _19 !== void 0 ? _19 : (_22 = (_21 = (_20 = data.data) === null || _20 === void 0 ? void 0 : _20.Media) === null || _21 === void 0 ? void 0 : _21.coverImage) === null || _22 === void 0 ? void 0 : _22.medium) !== null && _23 !== void 0 ? _23 : data.coverImage) !== null && _24 !== void 0 ? _24 : data.bannerImage);
+          animeInfo.popularity = (_27 = (_26 = (_25 = data.data) === null || _25 === void 0 ? void 0 : _25.Media) === null || _26 === void 0 ? void 0 : _26.popularity) !== null && _27 !== void 0 ? _27 : data === null || data === void 0 ? void 0 : data.popularity;
+          animeInfo.color = (_31 = (_30 = (_29 = (_28 = data.data) === null || _28 === void 0 ? void 0 : _28.Media) === null || _29 === void 0 ? void 0 : _29.coverImage) === null || _30 === void 0 ? void 0 : _30.color) !== null && _31 !== void 0 ? _31 : data === null || data === void 0 ? void 0 : data.color;
+          animeInfo.cover = (_35 = (_34 = (_33 = (_32 = data.data) === null || _32 === void 0 ? void 0 : _32.Media) === null || _33 === void 0 ? void 0 : _33.bannerImage) !== null && _34 !== void 0 ? _34 : data === null || data === void 0 ? void 0 : data.bannerImage) !== null && _35 !== void 0 ? _35 : animeInfo.image;
+          animeInfo.coverHash = (0, utils_2.getHashFromImage)((_39 = (_38 = (_37 = (_36 = data.data) === null || _36 === void 0 ? void 0 : _36.Media) === null || _37 === void 0 ? void 0 : _37.bannerImage) !== null && _38 !== void 0 ? _38 : data === null || data === void 0 ? void 0 : data.bannerImage) !== null && _39 !== void 0 ? _39 : animeInfo.image);
+          animeInfo.description = (_42 = (_41 = (_40 = data.data) === null || _40 === void 0 ? void 0 : _40.Media) === null || _41 === void 0 ? void 0 : _41.description) !== null && _42 !== void 0 ? _42 : data === null || data === void 0 ? void 0 : data.description;
+          switch ((_45 = (_44 = (_43 = data.data) === null || _43 === void 0 ? void 0 : _43.Media) === null || _44 === void 0 ? void 0 : _44.status) !== null && _45 !== void 0 ? _45 : data === null || data === void 0 ? void 0 : data.status) {
+            case 'RELEASING':
+              animeInfo.status = models_1.MediaStatus.ONGOING;
+              break;
+            case 'FINISHED':
+              animeInfo.status = models_1.MediaStatus.COMPLETED;
+              break;
+            case 'NOT_YET_RELEASED':
+              animeInfo.status = models_1.MediaStatus.NOT_YET_AIRED;
+              break;
+            case 'CANCELLED':
+              animeInfo.status = models_1.MediaStatus.CANCELLED;
+              break;
+            case 'HIATUS':
+              animeInfo.status = models_1.MediaStatus.HIATUS;
+            default:
+              animeInfo.status = models_1.MediaStatus.UNKNOWN;
+          }
+          animeInfo.releaseDate = (_49 = (_48 = (_47 = (_46 = data.data) === null || _46 === void 0 ? void 0 : _46.Media) === null || _47 === void 0 ? void 0 : _47.startDate) === null || _48 === void 0 ? void 0 : _48.year) !== null && _49 !== void 0 ? _49 : data.year;
+          animeInfo.startDate = {
+            year: data.data.Media.startDate.year,
+            month: data.data.Media.startDate.month,
+            day: data.data.Media.startDate.day,
+          };
+          animeInfo.endDate = {
+            year: data.data.Media.endDate.year,
+            month: data.data.Media.endDate.month,
+            day: data.data.Media.endDate.day,
+          };
+          if ((_50 = data.data.Media.nextAiringEpisode) === null || _50 === void 0 ? void 0 : _50.airingAt)
+            animeInfo.nextAiringEpisode = {
+              airingTime: (_51 = data.data.Media.nextAiringEpisode) === null || _51 === void 0 ? void 0 : _51.airingAt,
+              timeUntilAiring: (_52 = data.data.Media.nextAiringEpisode) === null || _52 === void 0 ? void 0 : _52.timeUntilAiring,
+              episode: (_53 = data.data.Media.nextAiringEpisode) === null || _53 === void 0 ? void 0 : _53.episode,
             };
-            let fillerEpisodes;
+          animeInfo.totalEpisodes = (_55 = (_54 = data.data.Media) === null || _54 === void 0 ? void 0 : _54.episodes) !== null && _55 !== void 0 ? _55 : ((_56 = data.data.Media.nextAiringEpisode) === null || _56 === void 0 ? void 0 : _56.episode) - 1;
+          animeInfo.currentEpisode = ((_58 = (_57 = data.data.Media) === null || _57 === void 0 ? void 0 : _57.nextAiringEpisode) === null || _58 === void 0 ? void 0 : _58.episode)
+            ? ((_59 = data.data.Media.nextAiringEpisode) === null || _59 === void 0 ? void 0 : _59.episode) - 1
+            : (_60 = data.data.Media) === null || _60 === void 0 ? void 0 : _60.episodes;
+          animeInfo.rating = data.data.Media.averageScore;
+          animeInfo.duration = data.data.Media.duration;
+          animeInfo.genres = data.data.Media.genres;
+          animeInfo.season = data.data.Media.season;
+          animeInfo.studios = data.data.Media.studios.edges.map((item) => item.node.name);
+          animeInfo.subOrDub = dub ? models_1.SubOrSub.DUB : models_1.SubOrSub.SUB;
+          animeInfo.type = data.data.Media.format;
+          animeInfo.characters = (_67 = (_66 = (_65 = (_64 = data.data) === null || _64 === void 0 ? void 0 : _64.Media) === null || _65 === void 0 ? void 0 : _65.characters) === null || _66 === void 0 ? void 0 : _66.edges) === null || _67 === void 0 ? void 0 : _67.map((item) => {
+            var _b, _c, _d;
+            return ({
+              id: (_b = item.node) === null || _b === void 0 ? void 0 : _b.id,
+              role: item.role,
+              name: {
+                full: item.node.name.full,
+                native: item.node.name.native,
+              },
+              image: (_c = item.node.image.large) !== null && _c !== void 0 ? _c : item.node.image.medium,
+              imageHash: (0, utils_2.getHashFromImage)((_d = item.node.image.large) !== null && _d !== void 0 ? _d : item.node.image.medium),
+            });
+          });
+          if ((this.provider instanceof zoro_1.default || this.provider instanceof gogoanime_1.default) &&
+            !dub &&
+            (animeInfo.status === models_1.MediaStatus.ONGOING ||
+              (0, utils_1.range)({ from: 1940, to: new Date().getFullYear() + 1 }).includes(parseInt(animeInfo.releaseDate)))) {
             try {
-                let { data, status } = await this.client.post(this.anilistGraphqlUrl, options, {
-                    validateStatus: () => true,
+              const anifyInfo = await new anify_1.default(this.proxyConfig, this.adapter, this.provider.name.toLowerCase()).fetchAnimeInfo(id);
+              animeInfo.mappings = anifyInfo.mappings;
+              animeInfo.artwork = anifyInfo.artwork;
+              animeInfo.episodes = (_72 = anifyInfo.episodes) === null || _72 === void 0 ? void 0 : _72.map((item) => {
+                var _b;
+                return ({
+                  id: item.id,
+                  title: item.title,
+                  description: item.description,
+                  number: item.number,
+                  image: item.image,
+                  imageHash: (0, utils_2.getHashFromImage)(item.image),
+                  airDate: (_b = item.airDate) !== null && _b !== void 0 ? _b : null,
                 });
-                if (status == 404)
-                    throw new Error('Media not found. Perhaps the id is invalid or the anime is not in anilist');
-                if (status == 429)
-                    throw new Error('You have been ratelimited by anilist. Please try again later');
-                // if (status >= 500) throw new Error('Anilist seems to be down. Please try again later');
-                if (status != 200 && status < 429)
-                    throw Error('Media not found. If the problem persists, please contact the developer');
-                if (status >= 500)
-                    data = await new anify_1.default().fetchAnimeInfoByIdRaw(id);
-                animeInfo.malId = (_d = (_c = (_b = data.data) === null || _b === void 0 ? void 0 : _b.Media) === null || _c === void 0 ? void 0 : _c.idMal) !== null && _d !== void 0 ? _d : (_e = data === null || data === void 0 ? void 0 : data.mappings) === null || _e === void 0 ? void 0 : _e.mal;
-                animeInfo.title = data.data.Media
-                    ? {
-                        romaji: data.data.Media.title.romaji,
-                        english: data.data.Media.title.english,
-                        native: data.data.Media.title.native,
-                        userPreferred: data.data.Media.title.userPreferred,
-                    }
-                    : data.data.title;
-                animeInfo.synonyms = (_h = (_g = (_f = data.data) === null || _f === void 0 ? void 0 : _f.Media) === null || _g === void 0 ? void 0 : _g.synonyms) !== null && _h !== void 0 ? _h : data === null || data === void 0 ? void 0 : data.synonyms;
-                animeInfo.isLicensed = (_l = (_k = (_j = data.data) === null || _j === void 0 ? void 0 : _j.Media) === null || _k === void 0 ? void 0 : _k.isLicensed) !== null && _l !== void 0 ? _l : undefined;
-                animeInfo.isAdult = (_p = (_o = (_m = data.data) === null || _m === void 0 ? void 0 : _m.Media) === null || _o === void 0 ? void 0 : _o.isAdult) !== null && _p !== void 0 ? _p : undefined;
-                animeInfo.countryOfOrigin = (_s = (_r = (_q = data.data) === null || _q === void 0 ? void 0 : _q.Media) === null || _r === void 0 ? void 0 : _r.countryOfOrigin) !== null && _s !== void 0 ? _s : undefined;
-                if ((_v = (_u = (_t = data.data) === null || _t === void 0 ? void 0 : _t.Media) === null || _u === void 0 ? void 0 : _u.trailer) === null || _v === void 0 ? void 0 : _v.id) {
-                    animeInfo.trailer = {
-                        id: data.data.Media.trailer.id,
-                        site: (_w = data.data.Media.trailer) === null || _w === void 0 ? void 0 : _w.site,
-                        thumbnail: (_x = data.data.Media.trailer) === null || _x === void 0 ? void 0 : _x.thumbnail,
-                        thumbnailHash: (0, utils_2.getHashFromImage)((_y = data.data.Media.trailer) === null || _y === void 0 ? void 0 : _y.thumbnail),
-                    };
-                }
-                animeInfo.image =
-                    (_11 = (_10 = (_6 = (_2 = (_1 = (_0 = (_z = data.data) === null || _z === void 0 ? void 0 : _z.Media) === null || _0 === void 0 ? void 0 : _0.coverImage) === null || _1 === void 0 ? void 0 : _1.extraLarge) !== null && _2 !== void 0 ? _2 : (_5 = (_4 = (_3 = data.data) === null || _3 === void 0 ? void 0 : _3.Media) === null || _4 === void 0 ? void 0 : _4.coverImage) === null || _5 === void 0 ? void 0 : _5.large) !== null && _6 !== void 0 ? _6 : (_9 = (_8 = (_7 = data.data) === null || _7 === void 0 ? void 0 : _7.Media) === null || _8 === void 0 ? void 0 : _8.coverImage) === null || _9 === void 0 ? void 0 : _9.medium) !== null && _10 !== void 0 ? _10 : data.coverImage) !== null && _11 !== void 0 ? _11 : data.bannerImage;
-                animeInfo.imageHash = (0, utils_2.getHashFromImage)((_24 = (_23 = (_19 = (_15 = (_14 = (_13 = (_12 = data.data) === null || _12 === void 0 ? void 0 : _12.Media) === null || _13 === void 0 ? void 0 : _13.coverImage) === null || _14 === void 0 ? void 0 : _14.extraLarge) !== null && _15 !== void 0 ? _15 : (_18 = (_17 = (_16 = data.data) === null || _16 === void 0 ? void 0 : _16.Media) === null || _17 === void 0 ? void 0 : _17.coverImage) === null || _18 === void 0 ? void 0 : _18.large) !== null && _19 !== void 0 ? _19 : (_22 = (_21 = (_20 = data.data) === null || _20 === void 0 ? void 0 : _20.Media) === null || _21 === void 0 ? void 0 : _21.coverImage) === null || _22 === void 0 ? void 0 : _22.medium) !== null && _23 !== void 0 ? _23 : data.coverImage) !== null && _24 !== void 0 ? _24 : data.bannerImage);
-                animeInfo.popularity = (_27 = (_26 = (_25 = data.data) === null || _25 === void 0 ? void 0 : _25.Media) === null || _26 === void 0 ? void 0 : _26.popularity) !== null && _27 !== void 0 ? _27 : data === null || data === void 0 ? void 0 : data.popularity;
-                animeInfo.color = (_31 = (_30 = (_29 = (_28 = data.data) === null || _28 === void 0 ? void 0 : _28.Media) === null || _29 === void 0 ? void 0 : _29.coverImage) === null || _30 === void 0 ? void 0 : _30.color) !== null && _31 !== void 0 ? _31 : data === null || data === void 0 ? void 0 : data.color;
-                animeInfo.cover = (_35 = (_34 = (_33 = (_32 = data.data) === null || _32 === void 0 ? void 0 : _32.Media) === null || _33 === void 0 ? void 0 : _33.bannerImage) !== null && _34 !== void 0 ? _34 : data === null || data === void 0 ? void 0 : data.bannerImage) !== null && _35 !== void 0 ? _35 : animeInfo.image;
-                animeInfo.coverHash = (0, utils_2.getHashFromImage)((_39 = (_38 = (_37 = (_36 = data.data) === null || _36 === void 0 ? void 0 : _36.Media) === null || _37 === void 0 ? void 0 : _37.bannerImage) !== null && _38 !== void 0 ? _38 : data === null || data === void 0 ? void 0 : data.bannerImage) !== null && _39 !== void 0 ? _39 : animeInfo.image);
-                animeInfo.description = (_42 = (_41 = (_40 = data.data) === null || _40 === void 0 ? void 0 : _40.Media) === null || _41 === void 0 ? void 0 : _41.description) !== null && _42 !== void 0 ? _42 : data === null || data === void 0 ? void 0 : data.description;
-                switch ((_45 = (_44 = (_43 = data.data) === null || _43 === void 0 ? void 0 : _43.Media) === null || _44 === void 0 ? void 0 : _44.status) !== null && _45 !== void 0 ? _45 : data === null || data === void 0 ? void 0 : data.status) {
-                    case 'RELEASING':
-                        animeInfo.status = models_1.MediaStatus.ONGOING;
-                        break;
-                    case 'FINISHED':
-                        animeInfo.status = models_1.MediaStatus.COMPLETED;
-                        break;
-                    case 'NOT_YET_RELEASED':
-                        animeInfo.status = models_1.MediaStatus.NOT_YET_AIRED;
-                        break;
-                    case 'CANCELLED':
-                        animeInfo.status = models_1.MediaStatus.CANCELLED;
-                        break;
-                    case 'HIATUS':
-                        animeInfo.status = models_1.MediaStatus.HIATUS;
-                    default:
-                        animeInfo.status = models_1.MediaStatus.UNKNOWN;
-                }
-                animeInfo.releaseDate = (_49 = (_48 = (_47 = (_46 = data.data) === null || _46 === void 0 ? void 0 : _46.Media) === null || _47 === void 0 ? void 0 : _47.startDate) === null || _48 === void 0 ? void 0 : _48.year) !== null && _49 !== void 0 ? _49 : data.year;
-                animeInfo.startDate = {
-                    year: data.data.Media.startDate.year,
-                    month: data.data.Media.startDate.month,
-                    day: data.data.Media.startDate.day,
-                };
-                animeInfo.endDate = {
-                    year: data.data.Media.endDate.year,
-                    month: data.data.Media.endDate.month,
-                    day: data.data.Media.endDate.day,
-                };
-                if ((_50 = data.data.Media.nextAiringEpisode) === null || _50 === void 0 ? void 0 : _50.airingAt)
-                    animeInfo.nextAiringEpisode = {
-                        airingTime: (_51 = data.data.Media.nextAiringEpisode) === null || _51 === void 0 ? void 0 : _51.airingAt,
-                        timeUntilAiring: (_52 = data.data.Media.nextAiringEpisode) === null || _52 === void 0 ? void 0 : _52.timeUntilAiring,
-                        episode: (_53 = data.data.Media.nextAiringEpisode) === null || _53 === void 0 ? void 0 : _53.episode,
-                    };
-                animeInfo.totalEpisodes = (_55 = (_54 = data.data.Media) === null || _54 === void 0 ? void 0 : _54.episodes) !== null && _55 !== void 0 ? _55 : ((_56 = data.data.Media.nextAiringEpisode) === null || _56 === void 0 ? void 0 : _56.episode) - 1;
-                animeInfo.currentEpisode = ((_58 = (_57 = data.data.Media) === null || _57 === void 0 ? void 0 : _57.nextAiringEpisode) === null || _58 === void 0 ? void 0 : _58.episode)
-                    ? ((_59 = data.data.Media.nextAiringEpisode) === null || _59 === void 0 ? void 0 : _59.episode) - 1
-                    : (_60 = data.data.Media) === null || _60 === void 0 ? void 0 : _60.episodes;
-                animeInfo.rating = data.data.Media.averageScore;
-                animeInfo.duration = data.data.Media.duration;
-                animeInfo.genres = data.data.Media.genres;
-                animeInfo.season = data.data.Media.season;
-                animeInfo.studios = data.data.Media.studios.edges.map((item) => item.node.name);
-                animeInfo.subOrDub = dub ? models_1.SubOrSub.DUB : models_1.SubOrSub.SUB;
-                animeInfo.type = data.data.Media.format;
-                animeInfo.recommendations = (_63 = (_62 = (_61 = data.data.Media) === null || _61 === void 0 ? void 0 : _61.recommendations) === null || _62 === void 0 ? void 0 : _62.edges) === null || _63 === void 0 ? void 0 : _63.map((item) => {
-                    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30;
-                    return ({
-                        id: (_b = item.node.mediaRecommendation) === null || _b === void 0 ? void 0 : _b.id,
-                        malId: (_c = item.node.mediaRecommendation) === null || _c === void 0 ? void 0 : _c.idMal,
-                        title: {
-                            romaji: (_e = (_d = item.node.mediaRecommendation) === null || _d === void 0 ? void 0 : _d.title) === null || _e === void 0 ? void 0 : _e.romaji,
-                            english: (_g = (_f = item.node.mediaRecommendation) === null || _f === void 0 ? void 0 : _f.title) === null || _g === void 0 ? void 0 : _g.english,
-                            native: (_j = (_h = item.node.mediaRecommendation) === null || _h === void 0 ? void 0 : _h.title) === null || _j === void 0 ? void 0 : _j.native,
-                            userPreferred: (_l = (_k = item.node.mediaRecommendation) === null || _k === void 0 ? void 0 : _k.title) === null || _l === void 0 ? void 0 : _l.userPreferred,
-                        },
-                        status: ((_m = item.node.mediaRecommendation) === null || _m === void 0 ? void 0 : _m.status) == 'RELEASING'
-                            ? models_1.MediaStatus.ONGOING
-                            : ((_o = item.node.mediaRecommendation) === null || _o === void 0 ? void 0 : _o.status) == 'FINISHED'
-                                ? models_1.MediaStatus.COMPLETED
-                                : ((_p = item.node.mediaRecommendation) === null || _p === void 0 ? void 0 : _p.status) == 'NOT_YET_RELEASED'
-                                    ? models_1.MediaStatus.NOT_YET_AIRED
-                                    : ((_q = item.node.mediaRecommendation) === null || _q === void 0 ? void 0 : _q.status) == 'CANCELLED'
-                                        ? models_1.MediaStatus.CANCELLED
-                                        : ((_r = item.node.mediaRecommendation) === null || _r === void 0 ? void 0 : _r.status) == 'HIATUS'
-                                            ? models_1.MediaStatus.HIATUS
-                                            : models_1.MediaStatus.UNKNOWN,
-                        episodes: (_s = item.node.mediaRecommendation) === null || _s === void 0 ? void 0 : _s.episodes,
-                        image: (_y = (_v = (_u = (_t = item.node.mediaRecommendation) === null || _t === void 0 ? void 0 : _t.coverImage) === null || _u === void 0 ? void 0 : _u.extraLarge) !== null && _v !== void 0 ? _v : (_x = (_w = item.node.mediaRecommendation) === null || _w === void 0 ? void 0 : _w.coverImage) === null || _x === void 0 ? void 0 : _x.large) !== null && _y !== void 0 ? _y : (_0 = (_z = item.node.mediaRecommendation) === null || _z === void 0 ? void 0 : _z.coverImage) === null || _0 === void 0 ? void 0 : _0.medium,
-                        imageHash: (0, utils_2.getHashFromImage)((_6 = (_3 = (_2 = (_1 = item.node.mediaRecommendation) === null || _1 === void 0 ? void 0 : _1.coverImage) === null || _2 === void 0 ? void 0 : _2.extraLarge) !== null && _3 !== void 0 ? _3 : (_5 = (_4 = item.node.mediaRecommendation) === null || _4 === void 0 ? void 0 : _4.coverImage) === null || _5 === void 0 ? void 0 : _5.large) !== null && _6 !== void 0 ? _6 : (_8 = (_7 = item.node.mediaRecommendation) === null || _7 === void 0 ? void 0 : _7.coverImage) === null || _8 === void 0 ? void 0 : _8.medium),
-                        cover: (_16 = (_13 = (_10 = (_9 = item.node.mediaRecommendation) === null || _9 === void 0 ? void 0 : _9.bannerImage) !== null && _10 !== void 0 ? _10 : (_12 = (_11 = item.node.mediaRecommendation) === null || _11 === void 0 ? void 0 : _11.coverImage) === null || _12 === void 0 ? void 0 : _12.extraLarge) !== null && _13 !== void 0 ? _13 : (_15 = (_14 = item.node.mediaRecommendation) === null || _14 === void 0 ? void 0 : _14.coverImage) === null || _15 === void 0 ? void 0 : _15.large) !== null && _16 !== void 0 ? _16 : (_18 = (_17 = item.node.mediaRecommendation) === null || _17 === void 0 ? void 0 : _17.coverImage) === null || _18 === void 0 ? void 0 : _18.medium,
-                        coverHash: (0, utils_2.getHashFromImage)((_26 = (_23 = (_20 = (_19 = item.node.mediaRecommendation) === null || _19 === void 0 ? void 0 : _19.bannerImage) !== null && _20 !== void 0 ? _20 : (_22 = (_21 = item.node.mediaRecommendation) === null || _21 === void 0 ? void 0 : _21.coverImage) === null || _22 === void 0 ? void 0 : _22.extraLarge) !== null && _23 !== void 0 ? _23 : (_25 = (_24 = item.node.mediaRecommendation) === null || _24 === void 0 ? void 0 : _24.coverImage) === null || _25 === void 0 ? void 0 : _25.large) !== null && _26 !== void 0 ? _26 : (_28 = (_27 = item.node.mediaRecommendation) === null || _27 === void 0 ? void 0 : _27.coverImage) === null || _28 === void 0 ? void 0 : _28.medium),
-                        rating: (_29 = item.node.mediaRecommendation) === null || _29 === void 0 ? void 0 : _29.meanScore,
-                        type: (_30 = item.node.mediaRecommendation) === null || _30 === void 0 ? void 0 : _30.format,
-                    });
+              });
+              if (!((_73 = animeInfo.episodes) === null || _73 === void 0 ? void 0 : _73.length)) {
+                animeInfo.episodes = await this.fetchDefaultEpisodeList({
+                  idMal: animeInfo.malId,
+                  season: data.data.Media.season,
+                  startDate: { year: parseInt(animeInfo.releaseDate) },
+                  title: {
+                    english: (_74 = animeInfo.title) === null || _74 === void 0 ? void 0 : _74.english,
+                    romaji: (_75 = animeInfo.title) === null || _75 === void 0 ? void 0 : _75.romaji,
+                  },
+                }, dub, id);
+                animeInfo.episodes = (_76 = animeInfo.episodes) === null || _76 === void 0 ? void 0 : _76.map((episode) => {
+                  if (!episode.image) {
+                    episode.image = animeInfo.image;
+                    episode.imageHash = animeInfo.imageHash;
+                  }
+                  return episode;
                 });
-                animeInfo.characters = (_67 = (_66 = (_65 = (_64 = data.data) === null || _64 === void 0 ? void 0 : _64.Media) === null || _65 === void 0 ? void 0 : _65.characters) === null || _66 === void 0 ? void 0 : _66.edges) === null || _67 === void 0 ? void 0 : _67.map((item) => {
-                    var _b, _c, _d;
-                    return ({
-                        id: (_b = item.node) === null || _b === void 0 ? void 0 : _b.id,
-                        role: item.role,
-                        name: {
-                            first: item.node.name.first,
-                            last: item.node.name.last,
-                            full: item.node.name.full,
-                            native: item.node.name.native,
-                            userPreferred: item.node.name.userPreferred,
-                        },
-                        image: (_c = item.node.image.large) !== null && _c !== void 0 ? _c : item.node.image.medium,
-                        imageHash: (0, utils_2.getHashFromImage)((_d = item.node.image.large) !== null && _d !== void 0 ? _d : item.node.image.medium),
-                        voiceActors: item.voiceActors.map((voiceActor) => {
-                            var _b, _c;
-                            return ({
-                                id: voiceActor.id,
-                                language: voiceActor.languageV2,
-                                name: {
-                                    first: voiceActor.name.first,
-                                    last: voiceActor.name.last,
-                                    full: voiceActor.name.full,
-                                    native: voiceActor.name.native,
-                                    userPreferred: voiceActor.name.userPreferred,
-                                },
-                                image: (_b = voiceActor.image.large) !== null && _b !== void 0 ? _b : voiceActor.image.medium,
-                                imageHash: (0, utils_2.getHashFromImage)((_c = voiceActor.image.large) !== null && _c !== void 0 ? _c : voiceActor.image.medium),
-                            });
-                        }),
-                    });
-                });
-                animeInfo.relations = (_71 = (_70 = (_69 = (_68 = data.data) === null || _68 === void 0 ? void 0 : _68.Media) === null || _69 === void 0 ? void 0 : _69.relations) === null || _70 === void 0 ? void 0 : _70.edges) === null || _71 === void 0 ? void 0 : _71.map((item) => {
-                    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-                    return ({
-                        id: item.node.id,
-                        relationType: item.relationType,
-                        malId: item.node.idMal,
-                        title: {
-                            romaji: item.node.title.romaji,
-                            english: item.node.title.english,
-                            native: item.node.title.native,
-                            userPreferred: item.node.title.userPreferred,
-                        },
-                        status: item.node.status == 'RELEASING'
-                            ? models_1.MediaStatus.ONGOING
-                            : item.node.status == 'FINISHED'
-                                ? models_1.MediaStatus.COMPLETED
-                                : item.node.status == 'NOT_YET_RELEASED'
-                                    ? models_1.MediaStatus.NOT_YET_AIRED
-                                    : item.node.status == 'CANCELLED'
-                                        ? models_1.MediaStatus.CANCELLED
-                                        : item.node.status == 'HIATUS'
-                                            ? models_1.MediaStatus.HIATUS
-                                            : models_1.MediaStatus.UNKNOWN,
-                        episodes: item.node.episodes,
-                        image: (_c = (_b = item.node.coverImage.extraLarge) !== null && _b !== void 0 ? _b : item.node.coverImage.large) !== null && _c !== void 0 ? _c : item.node.coverImage.medium,
-                        imageHash: (0, utils_2.getHashFromImage)((_e = (_d = item.node.coverImage.extraLarge) !== null && _d !== void 0 ? _d : item.node.coverImage.large) !== null && _e !== void 0 ? _e : item.node.coverImage.medium),
-                        color: (_f = item.node.coverImage) === null || _f === void 0 ? void 0 : _f.color,
-                        type: item.node.format,
-                        cover: (_j = (_h = (_g = item.node.bannerImage) !== null && _g !== void 0 ? _g : item.node.coverImage.extraLarge) !== null && _h !== void 0 ? _h : item.node.coverImage.large) !== null && _j !== void 0 ? _j : item.node.coverImage.medium,
-                        coverHash: (0, utils_2.getHashFromImage)((_m = (_l = (_k = item.node.bannerImage) !== null && _k !== void 0 ? _k : item.node.coverImage.extraLarge) !== null && _l !== void 0 ? _l : item.node.coverImage.large) !== null && _m !== void 0 ? _m : item.node.coverImage.medium),
-                        rating: item.node.meanScore,
-                    });
-                });
-                if ((this.provider instanceof zoro_1.default || this.provider instanceof gogoanime_1.default) &&
-                    !dub &&
-                    (animeInfo.status === models_1.MediaStatus.ONGOING ||
-                        (0, utils_1.range)({ from: 1940, to: new Date().getFullYear() + 1 }).includes(parseInt(animeInfo.releaseDate)))) {
-                    try {
-                        const anifyInfo = await new anify_1.default(this.proxyConfig, this.adapter, this.provider.name.toLowerCase()).fetchAnimeInfo(id);
-                        animeInfo.mappings = anifyInfo.mappings;
-                        animeInfo.artwork = anifyInfo.artwork;
-                        animeInfo.episodes = (_72 = anifyInfo.episodes) === null || _72 === void 0 ? void 0 : _72.map((item) => {
-                            var _b;
-                            return ({
-                                id: item.id,
-                                title: item.title,
-                                description: item.description,
-                                number: item.number,
-                                image: item.image,
-                                imageHash: (0, utils_2.getHashFromImage)(item.image),
-                                airDate: (_b = item.airDate) !== null && _b !== void 0 ? _b : null,
-                            });
-                        });
-                        if (!((_73 = animeInfo.episodes) === null || _73 === void 0 ? void 0 : _73.length)) {
-                            animeInfo.episodes = await this.fetchDefaultEpisodeList({
-                                idMal: animeInfo.malId,
-                                season: data.data.Media.season,
-                                startDate: { year: parseInt(animeInfo.releaseDate) },
-                                title: {
-                                    english: (_74 = animeInfo.title) === null || _74 === void 0 ? void 0 : _74.english,
-                                    romaji: (_75 = animeInfo.title) === null || _75 === void 0 ? void 0 : _75.romaji,
-                                },
-                            }, dub, id);
-                            animeInfo.episodes = (_76 = animeInfo.episodes) === null || _76 === void 0 ? void 0 : _76.map((episode) => {
-                                if (!episode.image) {
-                                    episode.image = animeInfo.image;
-                                    episode.imageHash = animeInfo.imageHash;
-                                }
-                                return episode;
-                            });
-                        }
-                    }
-                    catch (err) {
-                        animeInfo.episodes = await this.fetchDefaultEpisodeList({
-                            idMal: animeInfo.malId,
-                            season: data.data.Media.season,
-                            startDate: { year: parseInt(animeInfo.releaseDate) },
-                            title: {
-                                english: (_77 = animeInfo.title) === null || _77 === void 0 ? void 0 : _77.english,
-                                romaji: (_78 = animeInfo.title) === null || _78 === void 0 ? void 0 : _78.romaji,
-                            },
-                        }, dub, id);
-                        animeInfo.episodes = (_79 = animeInfo.episodes) === null || _79 === void 0 ? void 0 : _79.map((episode) => {
-                            if (!episode.image) {
-                                episode.image = animeInfo.image;
-                                episode.imageHash = animeInfo.imageHash;
-                            }
-                            return episode;
-                        });
-                        return animeInfo;
-                    }
-                }
-                else
-                    animeInfo.episodes = await this.fetchDefaultEpisodeList({
-                        idMal: animeInfo.malId,
-                        season: data.data.Media.season,
-                        startDate: { year: parseInt(animeInfo.releaseDate) },
-                        title: {
-                            english: (_80 = animeInfo.title) === null || _80 === void 0 ? void 0 : _80.english,
-                            romaji: (_81 = animeInfo.title) === null || _81 === void 0 ? void 0 : _81.romaji,
-                        },
-                        externalLinks: data.data.Media.externalLinks.filter((link) => link.type === 'STREAMING'),
-                    }, dub, id);
-                if (fetchFiller) {
-                    const { data: fillerData } = await this.client.get(`https://raw.githubusercontent.com/saikou-app/mal-id-filler-list/main/fillers/${animeInfo.malId}.json`, { validateStatus: () => true });
-                    if (!fillerData.toString().startsWith('404')) {
-                        fillerEpisodes = [];
-                        fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.push(...fillerData.episodes);
-                    }
-                }
-                animeInfo.episodes = (_82 = animeInfo.episodes) === null || _82 === void 0 ? void 0 : _82.map((episode) => {
-                    if (!episode.image) {
-                        episode.image = animeInfo.image;
-                        episode.imageHash = animeInfo.imageHash;
-                    }
-                    if (fetchFiller &&
-                        (fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.length) > 0 &&
-                        (fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.length) >= animeInfo.episodes.length) {
-                        if (fillerEpisodes[episode.number - 1])
-                            episode.isFiller = new Boolean(fillerEpisodes[episode.number - 1]['filler-bool']).valueOf();
-                    }
-                    return episode;
-                });
-                return animeInfo;
+              }
             }
             catch (err) {
-                throw new Error(err.message);
+              animeInfo.episodes = await this.fetchDefaultEpisodeList({
+                idMal: animeInfo.malId,
+                season: data.data.Media.season,
+                startDate: { year: parseInt(animeInfo.releaseDate) },
+                title: {
+                  english: (_77 = animeInfo.title) === null || _77 === void 0 ? void 0 : _77.english,
+                  romaji: (_78 = animeInfo.title) === null || _78 === void 0 ? void 0 : _78.romaji,
+                },
+              }, dub, id);
+              animeInfo.episodes = (_79 = animeInfo.episodes) === null || _79 === void 0 ? void 0 : _79.map((episode) => {
+                if (!episode.image) {
+                  episode.image = animeInfo.image;
+                  episode.imageHash = animeInfo.imageHash;
+                }
+                return episode;
+              });
+              return animeInfo;
             }
-        };
+          }
+          else
+            animeInfo.episodes = await this.fetchDefaultEpisodeList({
+              idMal: animeInfo.malId,
+              season: data.data.Media.season,
+              startDate: { year: parseInt(animeInfo.releaseDate) },
+              title: {
+                english: (_80 = animeInfo.title) === null || _80 === void 0 ? void 0 : _80.english,
+                romaji: (_81 = animeInfo.title) === null || _81 === void 0 ? void 0 : _81.romaji,
+              },
+              externalLinks: data.data.Media.externalLinks.filter((link) => link.type === 'STREAMING'),
+            }, dub, id);
+          if (fetchFiller) {
+            const { data: fillerData } = await this.client.get(`https://raw.githubusercontent.com/saikou-app/mal-id-filler-list/main/fillers/${animeInfo.malId}.json`, { validateStatus: () => true });
+            if (!fillerData.toString().startsWith('404')) {
+              fillerEpisodes = [];
+              fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.push(...fillerData.episodes);
+            }
+          }
+          animeInfo.episodes = (_82 = animeInfo.episodes) === null || _82 === void 0 ? void 0 : _82.map((episode) => {
+            if (!episode.image) {
+              episode.image = animeInfo.image;
+              episode.imageHash = animeInfo.imageHash;
+            }
+            if (fetchFiller &&
+              (fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.length) > 0 &&
+              (fillerEpisodes === null || fillerEpisodes === void 0 ? void 0 : fillerEpisodes.length) >= animeInfo.episodes.length) {
+              if (fillerEpisodes[episode.number - 1])
+                episode.isFiller = new Boolean(fillerEpisodes[episode.number - 1]['filler-bool']).valueOf();
+            }
+            return episode;
+          });
+          return animeInfo;
+        }
+        catch (err) {
+          throw new Error(err.message);
+        }
+      };
         /**
          *
          * @param episodeId Episode id
