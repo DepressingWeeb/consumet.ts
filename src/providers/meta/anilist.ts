@@ -372,7 +372,6 @@ class Anilist extends AnimeParser {
             romaji: data.data.Media.title.romaji,
             english: data.data.Media.title.english,
             native: data.data.Media.title.native,
-            userPreferred: data.data.Media.title.userPreferred,
           }
         : (data.data.title as ITitle);
 
@@ -457,121 +456,18 @@ class Anilist extends AnimeParser {
       animeInfo.studios = data.data.Media.studios.edges.map((item: any) => item.node.name);
       animeInfo.subOrDub = dub ? SubOrSub.DUB : SubOrSub.SUB;
       animeInfo.type = data.data.Media.format;
-      animeInfo.recommendations = data.data.Media?.recommendations?.edges?.map((item: any) => ({
-        id: item.node.mediaRecommendation?.id,
-        malId: item.node.mediaRecommendation?.idMal,
-        title: {
-          romaji: item.node.mediaRecommendation?.title?.romaji,
-          english: item.node.mediaRecommendation?.title?.english,
-          native: item.node.mediaRecommendation?.title?.native,
-          userPreferred: item.node.mediaRecommendation?.title?.userPreferred,
-        },
-        status:
-          item.node.mediaRecommendation?.status == 'RELEASING'
-            ? MediaStatus.ONGOING
-            : item.node.mediaRecommendation?.status == 'FINISHED'
-            ? MediaStatus.COMPLETED
-            : item.node.mediaRecommendation?.status == 'NOT_YET_RELEASED'
-            ? MediaStatus.NOT_YET_AIRED
-            : item.node.mediaRecommendation?.status == 'CANCELLED'
-            ? MediaStatus.CANCELLED
-            : item.node.mediaRecommendation?.status == 'HIATUS'
-            ? MediaStatus.HIATUS
-            : MediaStatus.UNKNOWN,
-        episodes: item.node.mediaRecommendation?.episodes,
-        image:
-          item.node.mediaRecommendation?.coverImage?.extraLarge ??
-          item.node.mediaRecommendation?.coverImage?.large ??
-          item.node.mediaRecommendation?.coverImage?.medium,
-        imageHash: getHashFromImage(
-          item.node.mediaRecommendation?.coverImage?.extraLarge ??
-            item.node.mediaRecommendation?.coverImage?.large ??
-            item.node.mediaRecommendation?.coverImage?.medium
-        ),
-        cover:
-          item.node.mediaRecommendation?.bannerImage ??
-          item.node.mediaRecommendation?.coverImage?.extraLarge ??
-          item.node.mediaRecommendation?.coverImage?.large ??
-          item.node.mediaRecommendation?.coverImage?.medium,
-        coverHash: getHashFromImage(
-          item.node.mediaRecommendation?.bannerImage ??
-            item.node.mediaRecommendation?.coverImage?.extraLarge ??
-            item.node.mediaRecommendation?.coverImage?.large ??
-            item.node.mediaRecommendation?.coverImage?.medium
-        ),
-        rating: item.node.mediaRecommendation?.meanScore,
-        type: item.node.mediaRecommendation?.format,
-      }));
 
       animeInfo.characters = data.data?.Media?.characters?.edges?.map((item: any) => ({
         id: item.node?.id,
         role: item.role,
         name: {
-          first: item.node.name.first,
-          last: item.node.name.last,
           full: item.node.name.full,
           native: item.node.name.native,
-          userPreferred: item.node.name.userPreferred,
         },
         image: item.node.image.large ?? item.node.image.medium,
         imageHash: getHashFromImage(item.node.image.large ?? item.node.image.medium),
-        voiceActors: item.voiceActors.map((voiceActor: any) => ({
-          id: voiceActor.id,
-          language: voiceActor.languageV2,
-          name: {
-            first: voiceActor.name.first,
-            last: voiceActor.name.last,
-            full: voiceActor.name.full,
-            native: voiceActor.name.native,
-            userPreferred: voiceActor.name.userPreferred,
-          },
-          image: voiceActor.image.large ?? voiceActor.image.medium,
-          imageHash: getHashFromImage(voiceActor.image.large ?? voiceActor.image.medium),
-        })),
       }));
 
-      animeInfo.relations = data.data?.Media?.relations?.edges?.map((item: any) => ({
-        id: item.node.id,
-        relationType: item.relationType,
-        malId: item.node.idMal,
-        title: {
-          romaji: item.node.title.romaji,
-          english: item.node.title.english,
-          native: item.node.title.native,
-          userPreferred: item.node.title.userPreferred,
-        },
-        status:
-          item.node.status == 'RELEASING'
-            ? MediaStatus.ONGOING
-            : item.node.status == 'FINISHED'
-            ? MediaStatus.COMPLETED
-            : item.node.status == 'NOT_YET_RELEASED'
-            ? MediaStatus.NOT_YET_AIRED
-            : item.node.status == 'CANCELLED'
-            ? MediaStatus.CANCELLED
-            : item.node.status == 'HIATUS'
-            ? MediaStatus.HIATUS
-            : MediaStatus.UNKNOWN,
-        episodes: item.node.episodes,
-        image: item.node.coverImage.extraLarge ?? item.node.coverImage.large ?? item.node.coverImage.medium,
-        imageHash: getHashFromImage(
-          item.node.coverImage.extraLarge ?? item.node.coverImage.large ?? item.node.coverImage.medium
-        ),
-        color: item.node.coverImage?.color,
-        type: item.node.format,
-        cover:
-          item.node.bannerImage ??
-          item.node.coverImage.extraLarge ??
-          item.node.coverImage.large ??
-          item.node.coverImage.medium,
-        coverHash: getHashFromImage(
-          item.node.bannerImage ??
-            item.node.coverImage.extraLarge ??
-            item.node.coverImage.large ??
-            item.node.coverImage.medium
-        ),
-        rating: item.node.meanScore,
-      }));
       if (
         (this.provider instanceof Zoro || this.provider instanceof Gogoanime) &&
         !dub &&

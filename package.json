@@ -24,8 +24,8 @@
         "dist"
     ],
     "repository": {
-        "type": "git",
-        "url": "git+https://github.com/consumet/consumet.ts.git"
+      "type": "git",
+      "url": "git+https://github.com/DepressingWeeb/consumet.ts"
     },
     "keywords": [
         "consumet",
