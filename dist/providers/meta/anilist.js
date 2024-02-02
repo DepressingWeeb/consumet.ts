@@ -1186,7 +1186,8 @@ class Anilist extends models_1.AnimeParser {
          * @returns anilist data for the anime **(without episodes)** (use `fetchEpisodesListById` to get the episodes) (use `fetchAnimeInfo` to get both)
          */
         this.fetchAnilistInfoById = async (id) => {
-            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
+            var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, _65, _66, _67, _68, _69, _70, _71, _72, _73, _74, _75, _76, _77, _78, _79, _80, _81, _82;
+
             const animeInfo = {
                 id: id,
                 title: '',
@@ -1274,7 +1275,6 @@ class Anilist extends models_1.AnimeParser {
               animeInfo.genres = data.data.Media.genres;
               animeInfo.season = data.data.Media.season;
               animeInfo.studios = data.data.Media.studios.edges.map((item) => item.node.name);
-              animeInfo.subOrDub = dub ? models_1.SubOrSub.DUB : models_1.SubOrSub.SUB;
               animeInfo.type = data.data.Media.format;
               animeInfo.characters = (_67 = (_66 = (_65 = (_64 = data.data) === null || _64 === void 0 ? void 0 : _64.Media) === null || _65 === void 0 ? void 0 : _65.characters) === null || _66 === void 0 ? void 0 : _66.edges) === null || _67 === void 0 ? void 0 : _67.map((item) => {
                 var _b, _c, _d;
