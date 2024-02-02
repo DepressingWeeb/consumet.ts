@@ -1507,51 +1507,41 @@ class Anilist extends AnimeParser {
       const { data } = await this.client.post(this.anilistGraphqlUrl, options).catch(() => {
         throw new Error('Media not found');
       });
-      animeInfo.malId = data.data?.Media?.idMal ?? data?.mappings?.mal;
-      animeInfo.title = data.data.Media
-        ? {
-          romaji: data.data.Media.title.romaji,
-          english: data.data.Media.title.english,
-          native: data.data.Media.title.native,
-        }
-        : (data.data.title as ITitle);
+      animeInfo.malId = data.data.Media.idMal;
+      animeInfo.title = {
+        romaji: data.data.Media.title.romaji,
+        english: data.data.Media.title.english,
+        native: data.data.Media.title.native,
+      };
 
-      animeInfo.synonyms = data.data?.Media?.synonyms ?? data?.synonyms;
-      animeInfo.isLicensed = data.data?.Media?.isLicensed ?? undefined;
-      animeInfo.isAdult = data.data?.Media?.isAdult ?? undefined;
-      animeInfo.countryOfOrigin = data.data?.Media?.countryOfOrigin ?? undefined;
-
-      if (data.data?.Media?.trailer?.id) {
+      if (data.data.Media.trailer?.id) {
         animeInfo.trailer = {
-          id: data.data.Media.trailer.id,
+          id: data.data.Media.trailer?.id,
           site: data.data.Media.trailer?.site,
           thumbnail: data.data.Media.trailer?.thumbnail,
           thumbnailHash: getHashFromImage(data.data.Media.trailer?.thumbnail),
         };
       }
+
+      animeInfo.synonyms = data.data.Media.synonyms;
+      animeInfo.isLicensed = data.data.Media.isLicensed;
+      animeInfo.isAdult = data.data.Media.isAdult;
+      animeInfo.countryOfOrigin = data.data.Media.countryOfOrigin;
+
       animeInfo.image =
-        data.data?.Media?.coverImage?.extraLarge ??
-        data.data?.Media?.coverImage?.large ??
-        data.data?.Media?.coverImage?.medium ??
-        data.coverImage ??
-        data.bannerImage;
+        data.data.Media.coverImage.extraLarge ??
+        data.data.Media.coverImage.large ??
+        data.data.Media.coverImage.medium;
 
       animeInfo.imageHash = getHashFromImage(
-        data.data?.Media?.coverImage?.extraLarge ??
-        data.data?.Media?.coverImage?.large ??
-        data.data?.Media?.coverImage?.medium ??
-        data.coverImage ??
-        data.bannerImage
+        data.data.Media.coverImage.extraLarge ??
+        data.data.Media.coverImage.large ??
+        data.data.Media.coverImage.medium
       );
-
-      animeInfo.popularity = data.data?.Media?.popularity ?? data?.popularity;
-      animeInfo.color = data.data?.Media?.coverImage?.color ?? data?.color;
-      animeInfo.cover = data.data?.Media?.bannerImage ?? data?.bannerImage ?? animeInfo.image;
-      animeInfo.coverHash = getHashFromImage(
-        data.data?.Media?.bannerImage ?? data?.bannerImage ?? animeInfo.image
-      );
-      animeInfo.description = data.data?.Media?.description ?? data?.description;
-      switch (data.data?.Media?.status ?? data?.status) {
+      animeInfo.cover = data.data.Media.bannerImage ?? animeInfo.image;
+      animeInfo.coverHash = getHashFromImage(data.data.Media.bannerImage ?? animeInfo.image);
+      animeInfo.description = data.data.Media.description;
+      switch (data.data.Media.status) {
         case 'RELEASING':
           animeInfo.status = MediaStatus.ONGOING;
           break;
@@ -1569,36 +1559,38 @@ class Anilist extends AnimeParser {
         default:
           animeInfo.status = MediaStatus.UNKNOWN;
       }
-      animeInfo.releaseDate = data.data?.Media?.startDate?.year ?? data.year;
-      animeInfo.startDate = {
-        year: data.data.Media.startDate.year,
-        month: data.data.Media.startDate.month,
-        day: data.data.Media.startDate.day,
-      };
-      animeInfo.endDate = {
-        year: data.data.Media.endDate.year,
-        month: data.data.Media.endDate.month,
-        day: data.data.Media.endDate.day,
-      };
+      animeInfo.releaseDate = data.data.Media.startDate.year;
       if (data.data.Media.nextAiringEpisode?.airingAt)
         animeInfo.nextAiringEpisode = {
           airingTime: data.data.Media.nextAiringEpisode?.airingAt,
           timeUntilAiring: data.data.Media.nextAiringEpisode?.timeUntilAiring,
           episode: data.data.Media.nextAiringEpisode?.episode,
         };
+
       animeInfo.totalEpisodes = data.data.Media?.episodes ?? data.data.Media.nextAiringEpisode?.episode - 1;
       animeInfo.currentEpisode = data.data.Media?.nextAiringEpisode?.episode
         ? data.data.Media.nextAiringEpisode?.episode - 1
-        : data.data.Media?.episodes;
+        : data.data.Media?.episodes || undefined;
       animeInfo.rating = data.data.Media.averageScore;
       animeInfo.duration = data.data.Media.duration;
       animeInfo.genres = data.data.Media.genres;
-      animeInfo.season = data.data.Media.season;
       animeInfo.studios = data.data.Media.studios.edges.map((item: any) => item.node.name);
+      animeInfo.season = data.data.Media.season;
+      animeInfo.popularity = data.data.Media.popularity;
       animeInfo.type = data.data.Media.format;
+      animeInfo.startDate = {
+        year: data.data.Media.startDate?.year,
+        month: data.data.Media.startDate?.month,
+        day: data.data.Media.startDate?.day,
+      };
+      animeInfo.endDate = {
+        year: data.data.Media.endDate?.year,
+        month: data.data.Media.endDate?.month,
+        day: data.data.Media.endDate?.day,
+      };
 
-      animeInfo.characters = data.data?.Media?.characters?.edges?.map((item: any) => ({
-        id: item.node?.id,
+      animeInfo.characters = data.data.Media.characters.edges.map((item: any) => ({
+        id: item.node.id,
         role: item.role,
         name: {
           full: item.node.name.full,
@@ -1607,6 +1599,7 @@ class Anilist extends AnimeParser {
         image: item.node.image.large ?? item.node.image.medium,
         imageHash: getHashFromImage(item.node.image.large ?? item.node.image.medium),
       }));
+      animeInfo.color = data.data.Media.coverImage?.color;
 
       return animeInfo;
     } catch (err) {
