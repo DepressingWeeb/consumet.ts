@@ -451,8 +451,8 @@ class ReadLightNovels extends LightNovelParser {
 
 export default ReadLightNovels;
 
-(async () => {
-   const ln = new ReadLightNovels();
-   const res = await ln.search('tensei s',1);
-   console.log(res.results);
- })();
+//(async () => {
+//   const ln = new ReadLightNovels();
+//   const res = await ln.search('tensei s',1);
+//   console.log(res.results);
+// })();
