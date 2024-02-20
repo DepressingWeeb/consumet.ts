@@ -7,11 +7,12 @@ const cheerio_1 = require("cheerio");
 const form_data_1 = __importDefault(require("form-data"));
 const models_1 = require("../../models");
 const utils_1 = require("../../utils");
+const types_1 = require("../../models/types");
 class ReadLightNovels extends models_1.LightNovelParser {
     constructor() {
         super(...arguments);
         this.name = 'Read Light Novels';
-        this.baseUrl = 'https://readlightnovels.net';
+        this.baseUrl = 'https://animedaily.net';
         this.logo = 'https://i.imgur.com/RDPjbc6.png';
         this.classPath = 'LIGHT_NOVELS.ReadLightNovels';
         /**
@@ -38,13 +39,13 @@ class ReadLightNovels extends models_1.LightNovelParser {
                 const $ = (0, cheerio_1.load)(page.data);
                 const novelId = parseInt($('#id_post').val());
                 lightNovelInfo.title = $('div.col-xs-12.col-sm-8.col-md-8.desc > h3').text();
-                lightNovelInfo.image = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.books > div > img').attr('src');
-                lightNovelInfo.author = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(1) > a').text();
-                lightNovelInfo.genres = $(' div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(2) > a')
+                lightNovelInfo.image = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.books > div.book > img').attr('src');
+                lightNovelInfo.author = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div.info-chitiet > span > a').text();
+                lightNovelInfo.genres = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(2) > span')
                     .map((i, el) => $(el).text())
                     .get();
-                lightNovelInfo.rating = parseFloat($('div.col-xs-12.col-sm-8.col-md-8.desc > div.rate > div.small > em > strong:nth-child(1) > span').text());
-                lightNovelInfo.views = parseInt($('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(4) > span').text());
+                lightNovelInfo.rating = parseFloat($('div.col-xs-12.col-sm-8.col-md-8.desc > div.post-ratings > div.danh-gia > span:nth-child(7)').text());
+                lightNovelInfo.views = parseInt($('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(4) > span').text().replace('.', ''));
                 lightNovelInfo.description = $('div.col-xs-12.col-sm-8.col-md-8.desc > div.desc-text > hr')
                     .eq(0)
                     .nextUntil('hr')
@@ -53,7 +54,7 @@ class ReadLightNovels extends models_1.LightNovelParser {
                     .map((i, el) => parseInt($(el).find('a').attr('data-page')))
                     .get()
                     .filter(x => !isNaN(x)));
-                switch ($('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(3) > span').text()) {
+                switch ($('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(5) > span').text()) {
                     case 'Completed':
                         lightNovelInfo.status = models_1.MediaStatus.COMPLETED;
                         break;
@@ -149,19 +150,36 @@ class ReadLightNovels extends models_1.LightNovelParser {
         /**
          *
          * @param query search query string
+         * @param page page number
          */
-        this.search = async (query) => {
-            const result = { results: [] };
+        this.search = async (query, page = 1) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
             try {
-                const res = await this.client.post(`${this.baseUrl}/?s=${query}`);
+                const url = page == 1 ? `${this.baseUrl}/?s=${encodeURIComponent(query)}` : `${this.baseUrl}/page/${page}?s=${encodeURIComponent(query)}`;
+                const res = await this.client.get(url);
                 const $ = (0, cheerio_1.load)(res.data);
-                $('div.col-xs-12.col-sm-12.col-md-9.col-truyen-main > div:nth-child(1) > div > div:nth-child(2) > div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
                     var _a;
                     result.results.push({
-                        id: (_a = $(el).find('a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
-                        title: $(el).find('a > div > h3').text(),
-                        url: $(el).find('a').attr('href'),
-                        image: $(el).find('a > img').attr('src'),
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
                     });
                 });
                 return result;
@@ -170,12 +188,211 @@ class ReadLightNovels extends models_1.LightNovelParser {
                 throw new Error(err.message);
             }
         };
+        this.fetchNewNovels = async (page = 1) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
+            try {
+                const url = page == 1 ? `${this.baseUrl}/new-novels` : `${this.baseUrl}/new-novels/page/${page}`;
+                const res = await this.client.get(url);
+                const $ = (0, cheerio_1.load)(res.data);
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                    var _a;
+                    result.results.push({
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span.chapter-name').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
+                    });
+                });
+                return result;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
+        this.fetchLatestRelease = async (page = 1) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
+            try {
+                const url = page == 1 ? `${this.baseUrl}/latest-release` : `${this.baseUrl}/latest-release/page/${page}`;
+                const res = await this.client.get(url);
+                const $ = (0, cheerio_1.load)(res.data);
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                    var _a;
+                    result.results.push({
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span.chapter-name').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
+                    });
+                });
+                return result;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
+        this.fetchMostPopular = async (page = 1) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
+            try {
+                const url = page == 1 ? `${this.baseUrl}/most-popular` : `${this.baseUrl}/most-popular/page/${page}`;
+                const res = await this.client.get(url);
+                const $ = (0, cheerio_1.load)(res.data);
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                    var _a;
+                    result.results.push({
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span.chapter-name').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
+                    });
+                });
+                return result;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
+        this.fetchCompleteNovels = async (page = 1) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
+            try {
+                const url = page == 1 ? `${this.baseUrl}/complete-novels` : `${this.baseUrl}/complete-novels/page/${page}`;
+                const res = await this.client.get(url);
+                const $ = (0, cheerio_1.load)(res.data);
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                    var _a;
+                    result.results.push({
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span.chapter-name').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
+                    });
+                });
+                return result;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
+        //There are 3 type of sortBy :'new' which is the default url,'doc-nhieu'(Most Read) and 'hoan-thanh'(Completed) 
+        this.fetchGenreNovels = async (genreID, page = 1, sortBy = types_1.LightNovelSortBy.NEW) => {
+            const result = {
+                currentPage: page,
+                hasNextPage: false,
+                results: []
+            };
+            try {
+                const url = page == 1 ? `${this.baseUrl}/${genreID}?loc=${sortBy}` : `${this.baseUrl}/${genreID}/page/${page}?loc=${sortBy}`;
+                const res = await this.client.get(url);
+                const $ = (0, cheerio_1.load)(res.data);
+                const pages = Math.max(...$('div.row.category > div > div > ul > li')
+                    .map((i, el) => parseInt($(el).find('a').attr('data-page')))
+                    .get()
+                    .filter(x => !isNaN(x)));
+                result.hasNextPage = page < pages;
+                $('div.col-md-3.col-sm-6.col-xs-6.home-truyendecu').each((i, el) => {
+                    var _a;
+                    result.results.push({
+                        id: (_a = $(el).find('div.caption > a').attr('href')) === null || _a === void 0 ? void 0 : _a.split('/')[3].replace('.html', ''),
+                        title: $(el).find('div.caption > a > h3').text(),
+                        url: $(el).find('div.caption > a').attr('href'),
+                        image: $(el).find('div.each_truyen > a > img').attr('src'),
+                        numRating: parseInt($(el).find('div.caption > div.chi-tiet > span.star-score').text().replace(/\D/g, '')),
+                        rating: parseFloat($(el).find('div.caption > div.chi-tiet > img').attr('alt').replace('sao', '').trim()),
+                        views: parseInt($(el).find('div.caption > div.chi-tiet.luot-xem').text().replace(/\D/g, '').trim()),
+                        genre: $(el).find('div.caption > div.chi-tiet.chuyen-muc >a').map((i, el) => $(el).text()).get(),
+                        latestChapter: $(el).find('div.caption > div.chi-tiet.tt-status > small > span.chapter-name').attr('title'),
+                        extraTags: $(el).find('div.each_truyen > a > span > span').map((i, el) => $(el).text()).get(),
+                    });
+                });
+                return result;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
+        this.fetchGenreList = async () => {
+            const genres = [];
+            try {
+                const res = await this.client.get(`${this.baseUrl}/front`);
+                const $ = (0, cheerio_1.load)(res.data);
+                $('div.index-cate').each((i, el) => {
+                    var _a;
+                    genres.push({
+                        id: (_a = $(el).find('a').attr('href')) === null || _a === void 0 ? void 0 : _a.replace(`${this.baseUrl}/`, '').trim(),
+                        title: $(el).find('a').text(),
+                    });
+                });
+                return genres;
+            }
+            catch (err) {
+                throw new Error(err.message);
+            }
+        };
     }
 }
 exports.default = ReadLightNovels;
-// (async () => {
-//   const ln = new ReadLightNovels();
-//   const chap = await ln.fetchChapterContent('youkoso-jitsuryoku-shijou-shugi-no-kyoushitsu-e/volume-1-prologue-the-structure-of-japanese-society');
-//   console.log(chap);
-// })();
+(async () => {
+    const ln = new ReadLightNovels();
+    const res = await ln.search('tensei s', 1);
+    console.log(res.results);
+})();
 //# sourceMappingURL=readlightnovels.js.map

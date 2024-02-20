@@ -428,6 +428,11 @@ export declare enum Topics {
     MERCH = "merch",
     EVENTS = "events"
 }
+export declare enum LightNovelSortBy {
+    NEW = "new",
+    MOST_READ = "doc-nhieu",
+    COMPLETED = "hoan-thanh"
+}
 export interface ProxyConfig {
     /**
      * The proxy URL

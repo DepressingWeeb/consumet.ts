@@ -95,6 +95,7 @@ class Anify extends models_1.AnimeParser {
             animeInfo.synonyms = data.synonyms;
             animeInfo.mappings = data.mappings;
             animeInfo.type = data.type;
+            animeInfo.artwork = data.artwork;
             const providerData = data.episodes.data.filter((e) => e.providerId === this.providerId)[0];
             animeInfo.episodes = providerData.episodes.map((episode) => ({
                 id: this.actions[this.providerId].unformat(episode.id),
@@ -138,6 +139,7 @@ class Anify extends models_1.AnimeParser {
             animeInfo.synonyms = data.synonyms;
             animeInfo.mappings = data.mappings;
             animeInfo.type = data.type;
+            animeInfo.artwork = data.artwork;
             const providerData = data.episodes.data.filter((e) => e.providerId === this.providerId)[0];
             animeInfo.episodes = providerData.episodes.map((episode) => ({
                 id: this.actions[this.providerId].unformat(episode.id),

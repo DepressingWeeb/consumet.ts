@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Topics = exports.Genres = exports.TvType = exports.SubOrSub = exports.MediaStatus = exports.StreamingServers = exports.MediaFormat = void 0;
+exports.LightNovelSortBy = exports.Topics = exports.Genres = exports.TvType = exports.SubOrSub = exports.MediaStatus = exports.StreamingServers = exports.MediaFormat = void 0;
 var MediaFormat;
 (function (MediaFormat) {
     MediaFormat["TV"] = "TV";
@@ -95,4 +95,10 @@ var Topics;
     Topics["MERCH"] = "merch";
     Topics["EVENTS"] = "events";
 })(Topics || (exports.Topics = Topics = {}));
+var LightNovelSortBy;
+(function (LightNovelSortBy) {
+    LightNovelSortBy["NEW"] = "new";
+    LightNovelSortBy["MOST_READ"] = "doc-nhieu";
+    LightNovelSortBy["COMPLETED"] = "hoan-thanh";
+})(LightNovelSortBy || (exports.LightNovelSortBy = LightNovelSortBy = {}));
 //# sourceMappingURL=types.js.map

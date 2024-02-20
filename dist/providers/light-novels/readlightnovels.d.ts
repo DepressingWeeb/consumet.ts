@@ -1,4 +1,5 @@
 import { LightNovelParser, ISearch, ILightNovelInfo, ILightNovelChapterContent, ILightNovelResult } from '../../models';
+import { LightNovelSortBy } from '../../models/types';
 declare class ReadLightNovels extends LightNovelParser {
     readonly name = "Read Light Novels";
     protected baseUrl: string;
@@ -20,7 +21,17 @@ declare class ReadLightNovels extends LightNovelParser {
     /**
      *
      * @param query search query string
+     * @param page page number
      */
-    search: (query: string) => Promise<ISearch<ILightNovelResult>>;
+    search: (query: string, page?: number) => Promise<ISearch<ILightNovelResult>>;
+    fetchNewNovels: (page?: number) => Promise<ISearch<ILightNovelResult>>;
+    fetchLatestRelease: (page?: number) => Promise<ISearch<ILightNovelResult>>;
+    fetchMostPopular: (page?: number) => Promise<ISearch<ILightNovelResult>>;
+    fetchCompleteNovels: (page?: number) => Promise<ISearch<ILightNovelResult>>;
+    fetchGenreNovels: (genreID: string, page?: number, sortBy?: LightNovelSortBy) => Promise<ISearch<ILightNovelResult>>;
+    fetchGenreList: () => Promise<{
+        id: string | undefined;
+        title: string | undefined;
+    }[]>;
 }
 export default ReadLightNovels;

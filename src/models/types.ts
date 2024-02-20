@@ -463,6 +463,12 @@ export enum Topics {
   EVENTS = 'events',
 }
 
+export enum LightNovelSortBy{
+  NEW = 'new',
+  MOST_READ = 'doc-nhieu',
+  COMPLETED = 'hoan-thanh',
+}
+
 export interface ProxyConfig {
   /**
    * The proxy URL
