@@ -39,7 +39,7 @@ class MangaDex extends models_1.MangaParser {
                         volumeNumber: chapter.attributes.volume,
                         pages: chapter.attributes.pages,
                         translatedLanguage: chapter.attributes.translatedLanguage,
-                        pubishAt: chapter.attributes.publishAt
+                        publishAt: chapter.attributes.publishAt
                     });
                 }
                 const findCoverArt = data.data.relationships.find((rel) => rel.type === 'cover_art');
@@ -280,6 +280,6 @@ class MangaDex extends models_1.MangaParser {
    const chapterPages = await md.fetchChapterPages(manga.chapters![0].id);
    console.log(chapterPages[17].img);
  })();
-*/
+ */
 exports.default = MangaDex;
 //# sourceMappingURL=mangadex.js.map

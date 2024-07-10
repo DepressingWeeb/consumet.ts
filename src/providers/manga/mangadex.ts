@@ -40,7 +40,7 @@ class MangaDex extends MangaParser {
           volumeNumber: chapter.attributes.volume,
           pages: chapter.attributes.pages,
           translatedLanguage:chapter.attributes.translatedLanguage,
-          pubishAt: chapter.attributes.publishAt
+          publishAt: chapter.attributes.publishAt
         });
       }
 
@@ -326,5 +326,5 @@ class MangaDex extends MangaParser {
    const chapterPages = await md.fetchChapterPages(manga.chapters![0].id);
    console.log(chapterPages[17].img);
  })();
-*/
+ */
 export default MangaDex;
