@@ -453,6 +453,6 @@ export default ReadLightNovels;
 
 //(async () => {
 //   const ln = new ReadLightNovels();
-//   const res = await ln.search('tensei s',1);
+//   const res = await ln.fetchMostPopular();
 //   console.log(res.results);
-// })();
+ //})();

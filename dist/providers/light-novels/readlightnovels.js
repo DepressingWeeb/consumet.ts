@@ -392,7 +392,7 @@ class ReadLightNovels extends models_1.LightNovelParser {
 exports.default = ReadLightNovels;
 //(async () => {
 //   const ln = new ReadLightNovels();
-//   const res = await ln.search('tensei s',1);
+//   const res = await ln.fetchMostPopular();
 //   console.log(res.results);
-// })();
+//})();
 //# sourceMappingURL=readlightnovels.js.map
