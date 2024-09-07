@@ -40,7 +40,7 @@ class ReadLightNovels extends models_1.LightNovelParser {
                 const novelId = parseInt($('#id_post').val());
                 lightNovelInfo.title = $('div.col-xs-12.col-sm-8.col-md-8.desc > h3').text();
                 lightNovelInfo.image = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.books > div.book > img').attr('src');
-                lightNovelInfo.author = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div.info-chitiet > span > a').text();
+                lightNovelInfo.author = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(1) > span > a').text();
                 lightNovelInfo.genres = $('div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(2) > span')
                     .map((i, el) => $(el).text())
                     .get();

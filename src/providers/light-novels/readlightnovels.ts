@@ -53,7 +53,7 @@ class ReadLightNovels extends LightNovelParser {
         'src'
       );
       lightNovelInfo.author = $(
-        'div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div.info-chitiet > span > a'
+        'div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(1) > span > a'
       ).text();
       lightNovelInfo.genres = $(
         'div.col-xs-12.col-sm-4.col-md-4.info-holder > div.info > div:nth-child(2) > span'
